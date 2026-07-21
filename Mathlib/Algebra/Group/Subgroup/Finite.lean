@@ -171,6 +171,16 @@ theorem card_subtype (K : Subgroup G) (L : Subgroup K) :
   card_map_of_injective K.subtype_injective
 
 @[to_additive]
+theorem card_subgroupOf_of_le {H K : Subgroup G} (h : H ≤ K) :
+    Nat.card (H.subgroupOf K) = Nat.card H :=
+  Nat.card_congr (subgroupOfEquivOfLe h).toEquiv
+
+@[to_additive]
+theorem card_subgroupOf (H K : Subgroup G) :
+    Nat.card (H.subgroupOf K) = Nat.card (H ⊓ K : Subgroup G) := by
+  rw [← inf_subgroupOf_right, card_subgroupOf_of_le inf_le_right]
+
+@[to_additive]
 theorem card_mapSubgroup {G' : Type*} [Group G'] (e : G ≃* G') :
     Nat.card (e.mapSubgroup H) = Nat.card H :=
   Subgroup.card_map_of_injective e.injective
