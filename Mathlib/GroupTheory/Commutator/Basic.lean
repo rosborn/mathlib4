@@ -70,6 +70,11 @@ theorem commutatorElement_inv : ⁅g₁, g₂⁆⁻¹ = ⁅g₂, g₁⁆ := by
 theorem map_commutatorElement : (f ⁅g₁, g₂⁆ : G') = ⁅f g₁, f g₂⁆ := by
   simp_rw [commutatorElement_def, map_mul f, map_inv f]
 
+@[to_additive (attr := simp, norm_cast)]
+theorem coe_commutatorElement {S : Type*} [SetLike S G] [SubgroupClass S G] {H : S} (a b : H) :
+    (↑⁅a, b⁆ : G) = ⁅(↑a : G), ↑b⁆ :=
+  rfl
+
 @[to_additive]
 theorem conjugate_commutatorElement : g₃ * ⁅g₁, g₂⁆ * g₃⁻¹ = ⁅g₃ * g₁ * g₃⁻¹, g₃ * g₂ * g₃⁻¹⁆ := by
   simp [mul_assoc, commutatorElement_def]
@@ -147,7 +152,7 @@ theorem commutator_le : ⁅H₁, H₂⁆ ≤ H₃ ↔ ∀ g₁ ∈ H₁, ∀ g�
   H₃.closure_le.trans
     ⟨fun h a b c d => h ⟨a, b, c, d, rfl⟩, fun h _g ⟨a, b, c, d, h_eq⟩ => h_eq ▸ h a b c d⟩
 
-@[to_additive]
+@[to_additive (attr := gcongr)]
 theorem commutator_mono (h₁ : H₁ ≤ K₁) (h₂ : H₂ ≤ K₂) : ⁅H₁, H₂⁆ ≤ ⁅K₁, K₂⁆ :=
   commutator_le.mpr fun _g₁ hg₁ _g₂ hg₂ => commutator_mem_commutator (h₁ hg₁) (h₂ hg₂)
 
@@ -251,6 +256,17 @@ theorem le_normalizer_iff_commutator_le_right : H ≤ normalizer K ↔ ⁅H, K�
 theorem le_normalizer_iff_commutator_le_left : H ≤ normalizer K ↔ ⁅K, H⁆ ≤ K :=
   commutator_comm H K ▸ le_normalizer_iff_commutator_le_right
 
+/-- Elements of a normal subgroup `H` disjoint from `K` centralize `K` as soon as they
+normalize it. -/
+@[to_additive /-- Elements of a normal additive subgroup `H` disjoint from `K` centralize `K`
+as soon as they normalize it. -/]
+theorem inf_normalizer_le_centralizer_of_disjoint [H.Normal] (hdis : Disjoint H K) :
+    H ⊓ normalizer (K : Set G) ≤ centralizer (K : Set G) := by
+  rw [← commutator_eq_bot_iff_le_centralizer, ← le_bot_iff, ← hdis.eq_bot]
+  refine le_inf ?_ ?_
+  · exact (commutator_mono inf_le_left le_rfl).trans (commutator_le_left H K)
+  · exact le_normalizer_iff_commutator_le_right.mp inf_le_right
+
 @[to_additive (attr := simp)]
 theorem commutator_bot_left : ⁅(⊥ : Subgroup G), H₁⁆ = ⊥ :=
   le_bot_iff.mp (commutator_le_left ⊥ H₁)
@@ -301,6 +317,22 @@ theorem map_commutator (f : G →* G') : map f ⁅H₁, H₂⁆ = ⁅map f H₁,
   · rintro _ ⟨p, hp, rfl⟩ _ ⟨q, hq, rfl⟩
     rw [← map_commutatorElement]
     exact mem_map_of_mem _ (commutator_mem_commutator hp hq)
+
+/-- **The Three Subgroups Lemma**, relative form: if two of the three rotated triple commutators
+lie in a normal subgroup, then so does the third. The absolute form is
+`commutator_commutator_eq_bot_of_rotate`. -/
+@[to_additive /-- **The Three Subgroups Lemma**, relative form: if two of the three rotated triple
+commutators lie in a normal additive subgroup, then so does the third. The absolute form is
+`commutator_commutator_eq_bot_of_rotate`. -/]
+theorem commutator_commutator_le_of_rotate {H₁ H₂ H₃ N : Subgroup G} [N.Normal]
+    (h1 : ⁅⁅H₂, H₃⁆, H₁⁆ ≤ N) (h2 : ⁅⁅H₃, H₁⁆, H₂⁆ ≤ N) :
+    ⁅⁅H₁, H₂⁆, H₃⁆ ≤ N := by
+  have key : ∀ {A B C : Subgroup G}, ⁅⁅A, B⁆, C⁆ ≤ N ↔
+      ⁅⁅A.map (QuotientGroup.mk' N), B.map (QuotientGroup.mk' N)⁆,
+        C.map (QuotientGroup.mk' N)⁆ = ⊥ := by
+    intro A B C
+    rw [← map_commutator, ← map_commutator, map_eq_bot_iff, QuotientGroup.ker_mk']
+  exact key.mpr (commutator_commutator_eq_bot_of_rotate (key.mp h1) (key.mp h2))
 
 variable {H₁ H₂}
 
