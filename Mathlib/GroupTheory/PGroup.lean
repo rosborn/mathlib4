@@ -339,6 +339,40 @@ theorem map {H : Subgroup G} (hH : IsPGroup p H) {K : Type*} [Group K] (ϕ : G �
   rw [← H.range_subtype, MonoidHom.map_range]
   exact hH.of_surjective (ϕ.domRestrict H).rangeRestrict (ϕ.domRestrict H).rangeRestrict_surjective
 
+/-- The image of `H` under `ϕ` is a `p`-group iff every element of `H` has `p`-power order
+modulo `ϕ.ker`. -/
+theorem map_iff_pow_mem_ker {H : Subgroup G} {K : Type*} [Group K] {ϕ : G →* K} :
+    IsPGroup p (H.map ϕ) ↔ ∀ x ∈ H, ∃ k : ℕ, x ^ p ^ k ∈ ϕ.ker := by
+  constructor
+  · intro h x hx
+    obtain ⟨k, hk⟩ := h ⟨ϕ x, x, hx, rfl⟩
+    exact ⟨k, by simpa [MonoidHom.mem_ker, ← map_pow] using congrArg Subtype.val hk⟩
+  · intro h y
+    obtain ⟨x, hx, hxy⟩ := y.2
+    obtain ⟨k, hk⟩ := h x hx
+    refine ⟨k, Subtype.ext ?_⟩
+    simpa [← hxy, map_pow] using MonoidHom.mem_ker.mp hk
+
+/-- The image of `H` in `G ⧸ N` is a `p`-group iff every element of `H` has `p`-power order
+modulo `N`. -/
+theorem map_mk'_iff_pow_mem {H N : Subgroup G} [N.Normal] :
+    IsPGroup p (H.map (QuotientGroup.mk' N)) ↔ ∀ x ∈ H, ∃ k : ℕ, x ^ p ^ k ∈ N := by
+  rw [map_iff_pow_mem_ker, QuotientGroup.ker_mk']
+
+/-- A quotient is a `p`-group iff every element of the group has `p`-power order modulo the
+kernel. -/
+theorem quotient_iff_pow_mem {N : Subgroup G} [N.Normal] :
+    IsPGroup p (G ⧸ N) ↔ ∀ x : G, ∃ k : ℕ, x ^ p ^ k ∈ N := by
+  simp_rw [IsPGroup, QuotientGroup.mk_surjective.forall, ← QuotientGroup.mk_pow,
+    QuotientGroup.eq_one_iff]
+
+/-- If a normal subgroup and the quotient by it are `p`-groups, then so is the group. -/
+theorem extension {N : Subgroup G} [N.Normal] (hN : IsPGroup p N) (hQ : IsPGroup p (G ⧸ N)) :
+    IsPGroup p G := fun g => by
+  obtain ⟨k, hk⟩ := quotient_iff_pow_mem.mp hQ g
+  obtain ⟨j, hj⟩ := hN ⟨g ^ p ^ k, hk⟩
+  exact ⟨k + j, by simpa [pow_add, pow_mul] using congrArg Subtype.val hj⟩
+
 set_option backward.isDefEq.respectTransparency false in
 theorem comap_of_ker_isPGroup {H : Subgroup G} (hH : IsPGroup p H) {K : Type*} [Group K]
     (ϕ : K →* G) (hϕ : IsPGroup p ϕ.ker) : IsPGroup p (H.comap ϕ) := by
@@ -432,6 +466,25 @@ theorem le_or_disjoint_of_coprime [hp : Fact p.Prime] {P : Subgroup G} (hP : IsP
     exact Nat.eq_one_of_dvd_coprimes h4 (H.relIndex_dvd_index_of_normal P)
       (Subgroup.relIndex_dvd_card H P)
   · exact Subgroup.disjoint_of_coprime_natCard h4
+
+/-! ### Composite modulus
+
+For finite groups and `n ≠ 0`, `IsPGroup n` (with `n` not necessarily prime) is a pure
+prime-support condition (`isPGroup_iff_primeFactors_card_subset`). This section adds coprimality
+and congruence consequences for composite moduli. -/
+
+/-- An `n`-group's order is coprime to anything coprime to `n`. -/
+theorem coprime_card_of_coprime [Finite G] {n m : ℕ} (hG : IsPGroup n G)
+    (hnm : Nat.Coprime n m) : Nat.Coprime (Nat.card G) m := by
+  obtain ⟨k, hk⟩ := hG.exists_card_dvd_pow
+  exact Nat.Coprime.coprime_dvd_left hk (hnm.pow_left k)
+
+/-- Being an `n`-group depends only on the prime support of `n`: for nonzero `n` and `m` with
+the same prime factors, `IsPGroup n` and `IsPGroup m` agree. -/
+theorem congr_primeFactors {n m : ℕ} (hn : n ≠ 0) (hm : m ≠ 0)
+    (h : n.primeFactors = m.primeFactors) : IsPGroup n G ↔ IsPGroup m G := by
+  rw [isPGroup_iff_isPGroup_prod_primeFactors hn, h,
+    ← isPGroup_iff_isPGroup_prod_primeFactors hm]
 
 section P2comm
 
