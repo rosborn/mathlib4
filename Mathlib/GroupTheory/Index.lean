@@ -108,7 +108,7 @@ theorem relIndex_mul_index (h : H ≤ K) : H.relIndex K * K.index = H.index := b
   rw [mul_comm]
   simp_rw [relIndex, index, ← Nat.card_prod, Nat.card_congr <| quotientEquivProdOfLE h]
 
-@[to_additive]
+@[to_additive (attr := gcongr)]
 theorem index_dvd_of_le (h : H ≤ K) : K.index ∣ H.index :=
   dvd_of_mul_left_eq (H.relIndex K) (relIndex_mul_index h)
 
@@ -156,7 +156,7 @@ theorem relIndex_dvd_index_of_normal [H.Normal] : H.relIndex K ∣ H.index :=
 
 variable {H K}
 
-@[to_additive]
+@[to_additive (attr := gcongr)]
 theorem relIndex_dvd_of_le_left (hHK : H ≤ K) : K.relIndex L ∣ H.relIndex L :=
   inf_of_le_left hHK ▸ dvd_of_mul_left_eq _ (relIndex_inf_mul_relIndex _ _ _)
 
@@ -306,6 +306,52 @@ theorem card_map_dvd (f : G →* G') : Nat.card (H.map f) ∣ Nat.card H :=
   card_dvd_of_surjective (f.subgroupMap H) (f.subgroupMap_surjective H)
 
 @[to_additive]
+theorem card_subgroupOf_dvd : Nat.card (H.subgroupOf K) ∣ Nat.card H := by
+  rw [card_subgroupOf]
+  exact card_dvd_of_le inf_le_left
+
+/-- The first isomorphism theorem for the restriction of `f` to `H`, in cardinality form:
+`|H ⊓ f.ker| * |H.map f| = |H|`. -/
+@[to_additive /-- The first isomorphism theorem for the restriction of `f` to `H`, in cardinality
+form: `|H ⊓ f.ker| * |H.map f| = |H|`. -/]
+theorem card_inf_ker_mul_card_map (f : G →* G') :
+    Nat.card (H ⊓ f.ker : Subgroup G) * Nat.card (H.map f) = Nat.card H := by
+  rw [inf_comm, ← card_subgroupOf, ← relIndex_ker, relIndex]
+  exact (f.ker.subgroupOf H).card_mul_index
+
+@[to_additive]
+theorem card_inf_mul_card_map_mk' (N : Subgroup G) [N.Normal] :
+    Nat.card (H ⊓ N : Subgroup G) * Nat.card (H.map (QuotientGroup.mk' N)) = Nat.card H := by
+  have h := H.card_inf_ker_mul_card_map (QuotientGroup.mk' N)
+  rwa [QuotientGroup.ker_mk'] at h
+
+@[to_additive]
+theorem card_comap (f : G' →* G) :
+    Nat.card (H.comap f) = Nat.card f.ker * Nat.card (f.range ⊓ H : Subgroup G) := by
+  rw [← (H.comap f).card_inf_ker_mul_card_map f, map_comap_eq,
+    inf_eq_right.mpr (H.ker_le_comap f)]
+
+@[to_additive]
+theorem card_comap_of_surjective {f : G' →* G} (hf : Function.Surjective f) :
+    Nat.card (H.comap f) = Nat.card f.ker * Nat.card H := by
+  rw [card_comap, f.range_eq_top_of_surjective hf, top_inf_eq]
+
+@[to_additive]
+theorem card_comap_mk' {N : Subgroup G} [N.Normal] (Q : Subgroup (G ⧸ N)) :
+    Nat.card (Q.comap (QuotientGroup.mk' N)) = Nat.card N * Nat.card Q := by
+  rw [Q.card_comap_of_surjective (QuotientGroup.mk'_surjective N), QuotientGroup.ker_mk']
+
+/-- The index of `N` in the preimage under `QuotientGroup.mk'` of a subgroup `Q` of `G ⧸ N` is
+the order of `Q`. -/
+@[to_additive /-- The index of `N` in the preimage under `QuotientAddGroup.mk'` of an additive
+subgroup `Q` of `G ⧸ N` is the order of `Q`. -/]
+theorem index_subgroupOf_comap_mk' {N : Subgroup G} [N.Normal] (Q : Subgroup (G ⧸ N)) :
+    (N.subgroupOf (Q.comap (QuotientGroup.mk' N))).index = Nat.card Q := by
+  have h := relIndex_ker (Q.comap (QuotientGroup.mk' N)) (QuotientGroup.mk' N)
+  rwa [QuotientGroup.ker_mk',
+    Subgroup.map_comap_eq_self_of_surjective (QuotientGroup.mk'_surjective N)] at h
+
+@[to_additive]
 theorem index_map (f : G →* G') :
     (H.map f).index = (H ⊔ f.ker).index * f.range.index := by
   rw [← comap_map_eq, index_comap, relIndex_mul_index (H.map_le_range f)]
@@ -348,6 +394,10 @@ theorem index_map_subtype {H : Subgroup G} (K : Subgroup H) :
 theorem index_eq_card : H.index = Nat.card (G ⧸ H) :=
   rfl
 
+@[to_additive]
+theorem relIndex_eq_card : H.relIndex K = Nat.card (K ⧸ H.subgroupOf K) :=
+  rfl
+
 @[to_additive index_mul_card]
 theorem index_mul_card : H.index * Nat.card H = Nat.card G := by
   rw [mul_comm, card_mul_index]
@@ -382,12 +432,12 @@ lemma relIndex_comap_ne_zero (f : G →* G') {J K : Subgroup G'} (hJK : J.relInd
 theorem index_eq_zero_of_relIndex_eq_zero (h : H.relIndex K = 0) : H.index = 0 :=
   H.relIndex_top_right.symm.trans (relIndex_eq_zero_of_le_right le_top h)
 
-@[to_additive]
+@[to_additive (attr := gcongr)]
 theorem relIndex_le_of_le_left (hHK : H ≤ K) (hHL : H.relIndex L ≠ 0) :
     K.relIndex L ≤ H.relIndex L :=
   Nat.le_of_dvd (Nat.pos_of_ne_zero hHL) (relIndex_dvd_of_le_left L hHK)
 
-@[to_additive]
+@[to_additive (attr := gcongr)]
 theorem relIndex_le_of_le_right (hKL : K ≤ L) (hHL : H.relIndex L ≠ 0) :
     H.relIndex K ≤ H.relIndex L :=
   Finite.card_le_of_embedding' (quotientSubgroupOfEmbeddingOfLE H hKL) fun h => (hHL h).elim
@@ -472,6 +522,20 @@ theorem relIndex_eq_one : H.relIndex K = 1 ↔ K ≤ H :=
 @[to_additive (attr := simp) card_eq_one]
 theorem card_eq_one : Nat.card H = 1 ↔ H = ⊥ :=
   H.relIndex_bot_left ▸ relIndex_eq_one.trans le_bot_iff
+
+/-- In an infinite group, a subgroup whose order is coprime to its index is `⊤` or `⊥`. -/
+@[to_additive /-- In an infinite additive group, an additive subgroup whose order is coprime to
+its index is `⊤` or `⊥`. -/]
+theorem eq_top_or_eq_bot_or_finite_of_coprime (h : Nat.Coprime (Nat.card H) H.index) :
+    H = ⊤ ∨ H = ⊥ ∨ Finite G := by
+  by_cases h1 : Nat.card H = 0
+  · rw [h1, Nat.coprime_zero_left, index_eq_one] at h
+    exact Or.inl h
+  by_cases h2 : H.index = 0
+  · rw [h2, Nat.coprime_zero_right, card_eq_one] at h
+    exact Or.inr (Or.inl h)
+  exact Or.inr <| Or.inr <|
+    Nat.finite_of_card_ne_zero (by rw [← H.card_mul_index]; exact mul_ne_zero h1 h2)
 
 /-- A subgroup has index dividing 2 if and only if there exists `a` such that for all `b`, at least
 one of `b * a` and `b` belongs to `H`. -/

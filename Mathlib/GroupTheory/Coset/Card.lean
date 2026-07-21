@@ -5,6 +5,7 @@ Authors: Mitchell Rowett, Kim Morrison
 -/
 module
 
+public import Mathlib.Algebra.Group.Subgroup.Finite
 public import Mathlib.GroupTheory.Coset.Basic
 public import Mathlib.SetTheory.Cardinal.Finite
 
@@ -72,6 +73,13 @@ theorem card_subgroup_dvd_card (s : Subgroup α) : Nat.card s ∣ Nat.card α :=
 @[to_additive]
 theorem card_quotient_dvd_card (s : Subgroup α) : Nat.card (α ⧸ s) ∣ Nat.card α := by
   simp [card_eq_card_quotient_mul_card_subgroup s, @dvd_mul_right ℕ]
+
+@[to_additive]
+theorem card_quotient_lt_card [Finite α] {s : Subgroup α} (hs : s ≠ ⊥) :
+    Nat.card (α ⧸ s) < Nat.card α :=
+  ((lt_mul_iff_one_lt_right Nat.card_pos).mpr
+    ((Subgroup.one_lt_card_iff_ne_bot s).mpr hs)).trans_eq
+    (card_eq_card_quotient_mul_card_subgroup s).symm
 
 variable {H : Type*} [Group H]
 
