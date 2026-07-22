@@ -765,6 +765,30 @@ theorem card_eq_multiplicity [Finite G] {p : ℕ} [hp : Fact p.Prime] (P : Sylow
   rw [heq, ← hp.out.pow_dvd_iff_dvd_ordProj (show Nat.card G ≠ 0 from Nat.card_pos.ne'), ← heq]
   exact P.1.card_subgroup_dvd_card
 
+/-- If `p` does not divide the index of `H`, then some Sylow `p`-subgroup of `G` lies inside
+`H`. -/
+theorem exists_le_of_not_dvd_index [Finite G] {p : ℕ} [Fact p.Prime] {H : Subgroup G}
+    (hH : ¬ p ∣ H.index) : ∃ S : Sylow p G, S ≤ H := by
+  obtain ⟨P₀⟩ : Nonempty (Sylow p H) := inferInstance
+  refine ⟨Sylow.ofCard (P₀.toSubgroup.map H.subtype) ?_, Subgroup.map_subtype_le _⟩
+  calc
+    Nat.card (P₀.toSubgroup.map H.subtype) = Nat.card P₀ := H.card_subtype P₀
+    _ = p ^ (Nat.card H).factorization p := P₀.card_eq_multiplicity
+    _ = p ^ (Nat.card G).factorization p := by
+      rw [← H.card_mul_index, Nat.factorization_mul Nat.card_pos.ne' H.index_ne_zero_of_finite]
+      simp [Nat.factorization_eq_zero_of_not_dvd hH]
+
+/-- If `p` does not divide the index of a cyclic subgroup `H`, then every `p`-subgroup is
+cyclic. -/
+theorem _root_.IsPGroup.isCyclic_of_not_dvd_index [Finite G] {p : ℕ} [Fact p.Prime]
+    {H : Subgroup G} [IsCyclic H] (hH : ¬ p ∣ H.index) {S : Subgroup G} (hS : IsPGroup p S) :
+    IsCyclic S := by
+  obtain ⟨T, hT⟩ := hS.exists_le_sylow
+  obtain ⟨S₀, hS₀⟩ := exists_le_of_not_dvd_index hH
+  have : IsCyclic S₀ := isCyclic_of_surjective _ (Subgroup.subgroupOfEquivOfLe hS₀).surjective
+  have : IsCyclic T := isCyclic_of_surjective _ (Sylow.equiv S₀ T).surjective
+  exact Subgroup.isCyclic_of_le hT
+
 variable (G) in
 theorem _root_.Group.card_dvd_prod_orderOf [Fintype G] : Nat.card G ∣ ∏ g : G, orderOf g := by
   classical
