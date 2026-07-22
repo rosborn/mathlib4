@@ -522,6 +522,35 @@ theorem mapSurjective_surjective (p : ℕ) [Fact p.Prime] :
 
 end mapSurjective
 
+section mapInjective
+
+variable {G' : Type*} [Group G'] {f : G →* G'} (hf : Function.Injective f)
+
+include hf
+
+/-- If `G` embeds into `G'` and every Sylow `p`-subgroup of `G'` is cyclic, then every
+`p`-subgroup of `G` is cyclic. -/
+theorem _root_.IsPGroup.isCyclic_of_injective {S : Subgroup G} (hS : IsPGroup p S)
+    (hG' : ∀ T : Sylow p G', IsCyclic T) : IsCyclic S := by
+  obtain ⟨T, hT⟩ := (hS.map f).exists_le_sylow
+  have := hG' T
+  have : IsCyclic (S.map f) :=
+    isCyclic_of_surjective _ (Subgroup.subgroupOfEquivOfLe hT).surjective
+  exact isCyclic_of_surjective _ (Subgroup.equivMapOfInjective S f hf).symm.surjective
+
+/-- If `G` embeds into `G'` and every Sylow `p`-subgroup of `G'` is commutative, then every
+`p`-subgroup of `G` is commutative. -/
+theorem _root_.IsPGroup.isMulCommutative_of_injective {S : Subgroup G} (hS : IsPGroup p S)
+    (hG' : ∀ T : Sylow p G', IsMulCommutative T) : IsMulCommutative S := by
+  obtain ⟨T, hT⟩ := (hS.map f).exists_le_sylow
+  have := hG' T
+  have : IsMulCommutative (S.map f) :=
+    .of_setLike_mul_comm fun a ha b hb => setLike_mul_comm (hT ha) (hT hb)
+  rw [← Subgroup.comap_map_eq_self_of_injective (H := S) hf]
+  exact Subgroup.comap_injective_isMulCommutative _ hf
+
+end mapInjective
+
 set_option backward.isDefEq.respectTransparency false in
 /-- **Frattini's Argument**: If `N` is a normal subgroup of `G`, and if `P` is a Sylow `p`-subgroup
   of `N`, then `N_G(P) ⊔ N = G`. -/
