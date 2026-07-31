@@ -210,6 +210,22 @@ lemma isComplement_iff_existsUnique_mul_inv_mem :
   · exact ⟨x.2, by simp [← hx], fun y hy ↦ (Prod.ext_iff.1 <| by simpa using hx' (⟨_, hy⟩, y)).2⟩
 
 @[to_additive]
+theorem IsComplement'.subgroupOf {N A U : Subgroup G} (hA : IsComplement' N A) (hAU : A ≤ U) :
+    IsComplement' (N.subgroupOf U) (A.subgroupOf U) := by
+  -- The unique factor `a ∈ A` of `u ∈ U` lies in `U`, so it factors `u` inside `U` as well.
+  refine isComplement_iff_existsUnique_mul_inv_mem.mpr fun u => ?_
+  obtain ⟨a, ha, hu⟩ := isComplement_iff_existsUnique_mul_inv_mem.mp hA (u : G)
+  refine ⟨⟨⟨a, hAU a.2⟩, a.2⟩, ha, fun b hb => ?_⟩
+  simpa [Subtype.ext_iff] using hu ⟨b, b.2⟩ hb
+
+theorem IsComplement'.smul {α : Type*} [Group α] [MulDistribMulAction α G]
+    (h : IsComplement' H K) (a : α) : IsComplement' (a • H) (a • K) := by
+  refine isComplement_iff_existsUnique_mul_inv_mem.mpr fun g => ?_
+  refine ((equivSMul a K).toEquiv.existsUnique_congr fun k => ?_).mp
+    (isComplement_iff_existsUnique_mul_inv_mem.mp h (a⁻¹ • g))
+  simp [Set.mem_smul_set_iff_inv_smul_mem]
+
+@[to_additive]
 lemma isComplement_subgroup_right_iff_existsUnique_quotientGroupMk :
     IsComplement S H ↔ ∀ q : G ⧸ H, ∃! s : S, QuotientGroup.mk s.1 = q := by
   simp_rw [isComplement_iff_existsUnique_inv_mul_mem, SetLike.mem_coe, ← QuotientGroup.eq,
@@ -642,6 +658,12 @@ theorem IsComplement'.disjoint (h : IsComplement' H K) : Disjoint H K :=
 theorem IsComplement'.index_eq_card (h : IsComplement' H K) : K.index = Nat.card H :=
   h.card_left.symm
 
+/-- A complement to a central subgroup is normal. -/
+theorem IsComplement'.normal_of_le_center (hc : H.IsComplement' K) (hZ : H ≤ center G) :
+    K.Normal := by
+  rw [← normalizer_eq_top_iff, ← top_le_iff, ← hc.sup_eq_top]
+  exact sup_le (hZ.trans (center_le_normalizer (K : Set G))) K.le_normalizer
+
 #adaptation_note
 /-- `respectTransparency.types true` changes the auto-generated lemmas' signature -/
 set_option backward.isDefEq.respectTransparency.types false in
@@ -669,6 +691,33 @@ theorem isComplement'_of_disjoint_and_mul_eq_univ (h1 : Disjoint H K)
   obtain ⟨h, hh, k, hk, hg⟩ := Set.eq_univ_iff_forall.mp h2 g
   exact ⟨(⟨h, hh⟩, ⟨k, hk⟩), hg⟩
 
+theorem _root_.IsCompl.isComplement' [H.Normal] (h : IsCompl H K) : IsComplement' H K :=
+  isComplement'_of_disjoint_and_mul_eq_univ h.disjoint <| by
+    rw [← normal_mul, codisjoint_iff.mp h.codisjoint, coe_top]
+
+/-- For `H` normal, being complements in the group sense is equivalent to being lattice
+complements. -/
+theorem isComplement'_iff_isCompl [H.Normal] : IsComplement' H K ↔ IsCompl H K :=
+  ⟨IsComplement'.isCompl, IsCompl.isComplement'⟩
+
+/-- If `K` is conjugate to `L`, then it is conjugate to `L` by an element of its
+complement `H`. -/
+theorem IsComplement'.exists_smul_eq_of_conj_smul_eq (h : IsComplement' H K) {L : Subgroup G}
+    {g : G} (hg : MulAut.conj g • K = L) : ∃ x : H, MulAut.conj (x : G) • K = L := by
+  obtain ⟨⟨a, b⟩, rfl⟩ := (h.existsUnique g).exists
+  exact ⟨a, by rw [← hg, map_mul, mul_smul, conj_smul_eq_self_of_mem b.2]⟩
+
+theorem IsComplement'.map {G' : Type*} [Group G'] (h : IsComplement' H K)
+    {f : G →* G'} (hf : Function.Surjective f) (hker : f.ker ≤ K) :
+    IsComplement' (H.map f) (K.map f) := by
+  refine isComplement'_of_disjoint_and_mul_eq_univ ?_ ?_
+  · rw [disjoint_iff, ← (comap_injective hf).eq_iff, MonoidHom.comap_bot]
+    calc comap f (H.map f ⊓ K.map f)
+        = (f.ker ⊔ H) ⊓ K := by rw [comap_inf, comap_map_eq, comap_map_eq_self hker, sup_comm]
+      _ = f.ker ⊔ H ⊓ K := sup_inf_assoc_of_le H hker
+      _ = f.ker := by rw [disjoint_iff.mp h.disjoint, sup_bot_eq]
+  · simp [← Set.image_mul, IsComplement.mul_eq h, hf.range_eq]
+
 theorem isComplement'_of_card_mul_and_disjoint [Finite G]
     (h1 : Nat.card H * Nat.card K = Nat.card G) (h2 : Disjoint H K) :
     IsComplement' H K :=
@@ -683,6 +732,29 @@ theorem isComplement'_of_coprime [Finite G]
     (h1 : Nat.card H * Nat.card K = Nat.card G)
     (h2 : Nat.Coprime (Nat.card H) (Nat.card K)) : IsComplement' H K :=
   isComplement'_of_card_mul_and_disjoint h1 <| disjoint_of_coprime_natCard h2
+
+/-- A subgroup `H` of order coprime to a normal subgroup `N` is a complement of `N` inside the
+join `H ⊔ N`. -/
+theorem isComplement'_subgroupOf_sup {N : Subgroup G} [N.Normal]
+    (h : Nat.Coprime (Nat.card N) (Nat.card H)) :
+    IsComplement' (N.subgroupOf (H ⊔ N)) (H.subgroupOf (H ⊔ N)) := by
+  by_cases hN : Nat.card N = 0
+  · obtain rfl : H = ⊥ := by simpa [hN] using h
+    simp
+  by_cases hH : Nat.card H = 0
+  · obtain rfl : N = ⊥ := by simpa [hH] using h
+    simp
+  have hcardN : Nat.card (N.subgroupOf (H ⊔ N)) = Nat.card N :=
+    Nat.card_congr (subgroupOfEquivOfLe le_sup_right).toEquiv
+  have hcardH : Nat.card (H.subgroupOf (H ⊔ N)) = Nat.card H :=
+    Nat.card_congr (subgroupOfEquivOfLe le_sup_left).toEquiv
+  have hidx : (N.subgroupOf (H ⊔ N)).index = Nat.card H := by
+    rw [← relIndex, relIndex_sup_right, relIndex,
+      subgroupOf_eq_bot.mpr (disjoint_of_coprime_natCard h), index_bot]
+  have hcard : Nat.card ↥(H ⊔ N) = Nat.card N * Nat.card H := by
+    rw [← (N.subgroupOf (H ⊔ N)).card_mul_index, hidx, hcardN]
+  have : Finite ↥(H ⊔ N) := Nat.finite_of_card_ne_zero (hcard.trans_ne (mul_ne_zero hN hH))
+  exact isComplement'_of_coprime (by rw [hcardN, hcardH, hcard]) (by rw [hcardN, hcardH]; exact h)
 
 theorem isComplement'_stabilizer {α : Type*} [MulAction G α] (a : α)
     (h1 : ∀ h : H, h • a = a → h = 1) (h2 : ∀ g : G, ∃ h : H, h • g • a = a) :

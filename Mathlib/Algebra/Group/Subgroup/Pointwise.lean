@@ -330,6 +330,13 @@ theorem inf_mul_assoc (A B C : Subgroup G) (h : C ≤ A) :
   suffices y * z * z⁻¹ ∈ A by simpa
   exact mul_mem hyz (inv_mem (h hz))
 
+/-- **Dedekind's modular law**: `(N ⊔ H) ⊓ K = N ⊔ H ⊓ K` for a normal subgroup `N ≤ K`. -/
+@[to_additive /-- **Dedekind's modular law**: `(N ⊔ H) ⊓ K = N ⊔ H ⊓ K` for a normal additive
+subgroup `N ≤ K`. -/]
+theorem sup_inf_assoc_of_le {N : Subgroup G} [N.Normal] (H : Subgroup G) {K : Subgroup G}
+    (h : N ≤ K) : (N ⊔ H) ⊓ K = N ⊔ H ⊓ K :=
+  SetLike.coe_injective <| by rw [coe_inf, normal_mul, normal_mul, mul_inf_assoc _ _ _ h]
+
 @[to_additive]
 lemma normalizer_inf_normalizer_le_normalizer_sup (H K : Subgroup G) :
     normalizer H ⊓ normalizer K ≤ normalizer ((H ⊔ K : Subgroup G) : Set G) := by
