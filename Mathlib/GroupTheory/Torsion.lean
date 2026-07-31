@@ -471,6 +471,13 @@ theorem mem_primaryComponent_iff_orderOf [Fact p.Prime] {g : G} :
 theorem primaryComponent.isPGroup : IsPGroup p (primaryComponent G p) := fun g ↦
   g.property.imp fun _ hk ↦ Subtype.ext <| by simpa using hk
 
+/-- The `p`-primary component is a characteristic subgroup. -/
+@[to_additive /-- The `p`-primary component is a characteristic additive subgroup. -/]
+instance primaryComponent.characteristic : (primaryComponent G p).Characteristic := by
+  refine Subgroup.characteristic_iff_comap_eq.mpr fun ϕ => ?_
+  ext x
+  exact exists_congr fun _ => by simp [← map_pow]
+
 variable (G H)
 
 /-- The free rank of a finitely generated abelian group is the rank of its free part. -/
