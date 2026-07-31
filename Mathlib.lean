@@ -4246,6 +4246,7 @@ public import Mathlib.Data.Nat.Factorization.Induction
 public import Mathlib.Data.Nat.Factorization.LCM
 public import Mathlib.Data.Nat.Factorization.PrimePow
 public import Mathlib.Data.Nat.Factorization.Root
+public import Mathlib.Data.Nat.Factorization.UnitaryDivisor
 public import Mathlib.Data.Nat.Factors
 public import Mathlib.Data.Nat.Fib.Basic
 public import Mathlib.Data.Nat.Fib.Zeckendorf

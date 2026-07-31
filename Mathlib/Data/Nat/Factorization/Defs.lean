@@ -55,6 +55,10 @@ def factorization (n : ℕ) : ℕ →₀ ℕ where
 /-- The support of `n.factorization` is exactly `n.primeFactors`. -/
 @[simp] lemma support_factorization (n : ℕ) : (factorization n).support = n.primeFactors := rfl
 
+theorem factorization_ne_zero_iff_mem_primeFactors {n p : ℕ} :
+    n.factorization p ≠ 0 ↔ p ∈ n.primeFactors := by
+  rw [← support_factorization, Finsupp.mem_support_iff]
+
 theorem factorization_def (n : ℕ) {p : ℕ} (pp : p.Prime) : n.factorization p = padicValNat p n := by
   simpa [factorization] using absurd pp
 
