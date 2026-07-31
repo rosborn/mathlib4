@@ -869,7 +869,6 @@ noncomputable def directProductOfNormal [Finite G]
     have hp₁' := Fact.mk (Nat.prime_of_mem_primeFactors hp₁)
     have hp₂' := Fact.mk (Nat.prime_of_mem_primeFactors hp₂)
     have hne' : p₁ ≠ p₂ := by simpa using hne
-    simp only [← Nat.card_eq_fintype_card]
     apply IsPGroup.coprime_card_of_ne p₁ p₂ hne' _ _ (P p₁).isPGroup' (P p₂).isPGroup'
   · simp only [← Nat.card_eq_fintype_card]
     calc

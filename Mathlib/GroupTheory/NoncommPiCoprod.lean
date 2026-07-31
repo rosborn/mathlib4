@@ -249,8 +249,8 @@ theorem injective_noncommPiCoprod_of_iSupIndep [Fintype ι]
 @[to_additive]
 theorem independent_range_of_coprime_order
     (hcomm : Pairwise fun i j : ι => ∀ (x : H i) (y : H j), Commute (ϕ i x) (ϕ j y))
-    [Finite ι] [∀ i, Fintype (H i)]
-    (hcoprime : Pairwise fun i j => Nat.Coprime (Fintype.card (H i)) (Fintype.card (H j))) :
+    [Finite ι]
+    (hcoprime : Pairwise fun i j => Nat.Coprime (Nat.card (H i)) (Nat.card (H j))) :
     iSupIndep fun i => (ϕ i).range := by
   cases nonempty_fintype ι
   let := Classical.decEq ι
@@ -265,12 +265,12 @@ theorem independent_range_of_coprime_order
     exact hj ∘ Subtype.ext
   obtain ⟨g, hgf⟩ := hxp
   obtain ⟨g', hg'f⟩ := hxi
-  have hxi : orderOf f ∣ Fintype.card (H i) := by
+  have hxi : orderOf f ∣ Nat.card (H i) := by
     rw [← hg'f]
-    exact (orderOf_map_dvd _ _).trans orderOf_dvd_card
-  have hxp : orderOf f ∣ ∏ j : { j // j ≠ i }, Fintype.card (H j) := by
-    rw [← hgf, ← Fintype.card_pi]
-    exact (orderOf_map_dvd _ _).trans orderOf_dvd_card
+    exact (orderOf_map_dvd _ _).trans (orderOf_dvd_natCard _)
+  have hxp : orderOf f ∣ ∏ j : { j // j ≠ i }, Nat.card (H j) := by
+    rw [← hgf, ← Nat.card_pi]
+    exact (orderOf_map_dvd _ _).trans (orderOf_dvd_natCard _)
   change f = 1
   rw [← pow_one f, ← orderOf_dvd_iff_pow_eq_one]
   obtain ⟨c, hc⟩ := Nat.dvd_gcd hxp hxi
@@ -307,8 +307,8 @@ theorem commute_subtype_of_commute
 @[to_additive]
 theorem independent_of_coprime_order
     (hcomm : Pairwise fun i j : ι => ∀ x y : G, x ∈ H i → y ∈ H j → Commute x y)
-    [Finite ι] [∀ i, Fintype (H i)]
-    (hcoprime : Pairwise fun i j => Nat.Coprime (Fintype.card (H i)) (Fintype.card (H j))) :
+    [Finite ι]
+    (hcoprime : Pairwise fun i j => Nat.Coprime (Nat.card (H i)) (Nat.card (H j))) :
     iSupIndep H := by
   simpa using
     MonoidHom.independent_range_of_coprime_order (fun i => (H i).subtype)
