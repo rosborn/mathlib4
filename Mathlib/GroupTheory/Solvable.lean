@@ -65,6 +65,12 @@ theorem derivedSeries_one : derivedSeries G 1 = commutator G :=
 theorem derivedSeries_antitone : Antitone (derivedSeries G) :=
   antitone_nat_of_succ_le fun n => (derivedSeries G n).commutator_le_self
 
+theorem derivedSeries_succ_eq_bot_iff (n : ℕ) :
+    derivedSeries G (n + 1) = ⊥ ↔ IsMulCommutative (derivedSeries G n) := by
+  rw [derivedSeries_succ, ← Subgroup.map_subtype_commutator,
+    Subgroup.map_eq_bot_iff_of_injective (hf := (derivedSeries G n).subtype_injective),
+    commutator_eq_bot_iff]
+
 instance derivedSeries_characteristic (n : ℕ) : (derivedSeries G n).Characteristic := by
   induction n with
   | zero => exact Subgroup.topCharacteristic
@@ -171,6 +177,10 @@ theorem isSolvable_of_surjective (hf : Function.Surjective f) [IsSolvable G] : I
 @[deprecated (since := "2026-07-16")]
 alias _root_.solvable_of_surjective := isSolvable_of_surjective
 
+theorem isSolvable_of_mulEquiv {G' : Type*} [Group G'] (e : G ≃* G') [IsSolvable G] :
+    IsSolvable G' :=
+  isSolvable_of_isSolvable_injective (f := e.symm.toMonoidHom) e.symm.injective
+
 instance (H : Subgroup G) [H.Normal] [IsSolvable G] :
     IsSolvable (G ⧸ H) :=
   isSolvable_of_surjective (QuotientGroup.mk'_surjective H)
@@ -180,10 +190,38 @@ theorem isSolvable_iff_subgroup_quotient (H : Subgroup G) [H.Normal] :
   ⟨fun _ ↦ ⟨inferInstance, inferInstance⟩, fun ⟨_, _⟩ ↦
     isSolvable_of_ker_le_range H.subtype (QuotientGroup.mk' H) (by simp)⟩
 
+instance isSolvable_subgroupOf (H K : Subgroup G) [IsSolvable H] :
+    IsSolvable (H.subgroupOf K) := by
+  have : IsSolvable ↥(H ⊓ K : Subgroup G) :=
+    isSolvable_of_isSolvable_injective (Subgroup.inclusion_injective inf_le_left)
+  rw [← Subgroup.inf_subgroupOf_right]
+  exact isSolvable_of_mulEquiv (Subgroup.subgroupOfEquivOfLe inf_le_right).symm
+
+theorem isSolvable_quotient_subgroupOf {N : Subgroup G} [N.Normal] [IsSolvable (G ⧸ N)]
+    (U : Subgroup G) : IsSolvable (U ⧸ N.subgroupOf U) := by
+  let f := QuotientGroup.map (N.subgroupOf U) N U.subtype (Subgroup.comap_subtype N U).ge
+  refine isSolvable_of_isSolvable_injective (f := f) ?_
+  rw [← MonoidHom.ker_eq_bot_iff, QuotientGroup.ker_map, Subgroup.comap_subtype]
+  exact QuotientGroup.map_mk'_self _
+
 instance {G' : Type*} [Group G'] [IsSolvable G] [IsSolvable G'] :
     IsSolvable (G × G') :=
   isSolvable_of_ker_le_range (MonoidHom.inl G G') (MonoidHom.snd G G') fun x hx =>
     ⟨x.1, Prod.ext rfl hx.symm⟩
+
+variable (G) in
+/-- The derived series of a nontrivial solvable group has a last nontrivial term. -/
+theorem IsSolvable.exists_derivedSeries_ne_bot_succ_eq_bot [IsSolvable G] [Nontrivial G] :
+    ∃ n, derivedSeries G n ≠ ⊥ ∧ derivedSeries G (n + 1) = ⊥ := by
+  obtain ⟨n, hn⟩ := IsSolvable.solvable (G := G)
+  induction n with
+  | zero =>
+    rw [derivedSeries_zero] at hn
+    exact absurd (Subgroup.subsingleton_iff.mp (subsingleton_of_top_eq_bot hn)) (not_subsingleton G)
+  | succ n ih =>
+    by_cases h : derivedSeries G n = ⊥
+    · exact ih h
+    · exact ⟨n, h, hn⟩
 
 variable (G) in
 theorem IsSolvable.commutator_lt_top_of_nontrivial [hG : IsSolvable G] [Nontrivial G] :
