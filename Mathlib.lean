@@ -455,6 +455,7 @@ public import Mathlib.Algebra.Group.Semiconj.Units
 public import Mathlib.Algebra.Group.Shrink
 public import Mathlib.Algebra.Group.Subgroup.Actions
 public import Mathlib.Algebra.Group.Subgroup.Basic
+public import Mathlib.Algebra.Group.Subgroup.CompactElement
 public import Mathlib.Algebra.Group.Subgroup.Defs
 public import Mathlib.Algebra.Group.Subgroup.Even
 public import Mathlib.Algebra.Group.Subgroup.Finite
