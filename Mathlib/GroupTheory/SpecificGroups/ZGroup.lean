@@ -235,11 +235,11 @@ variable [Finite G] (P : Sylow p G) [IsCyclic P]
 theorem commutator_eq_bot_or_commutator_eq_self [P.Normal] {K : Subgroup G}
     (h : K.IsComplement' P) : ⁅K, P.1⁆ = ⊥ ∨ ⁅K, P.1⁆ = P :=
   P.2.commutator_eq_bot_or_commutator_eq_self (P.normalizer_eq_top ▸ le_top)
-    (h.index_eq_card ▸ P.card_coprime_index)
+    (h.index_eq_card ▸ P.isHall.coprime)
 
 /-- A normal cyclic Sylow subgroup is either central or contained in the commutator subgroup. -/
 theorem le_center_or_le_commutator [P.Normal] : P ≤ Subgroup.center G ∨ P ≤ commutator G := by
-  obtain ⟨K, hK⟩ := Subgroup.exists_left_complement'_of_coprime P.card_coprime_index
+  obtain ⟨K, hK⟩ := Subgroup.exists_left_complement'_of_coprime P.isHall.coprime
   refine (commutator_eq_bot_or_commutator_eq_self P hK).imp (fun h ↦ ?_) (fun h ↦ ?_)
   · replace h := sup_le (Subgroup.commutator_eq_bot_iff_le_centralizer.mp h) P.le_centralizer
     rwa [hK.sup_eq_top, top_le_iff, Subgroup.centralizer_eq_top_iff_subset] at h

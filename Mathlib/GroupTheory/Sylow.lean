@@ -7,6 +7,7 @@ module
 
 public import Mathlib.Algebra.Order.Archimedean.Basic
 public import Mathlib.Data.SetLike.Fintype
+public import Mathlib.GroupTheory.HallSubgroup.Defs
 public import Mathlib.GroupTheory.PGroup
 public import Mathlib.GroupTheory.NoncommPiCoprod
 
@@ -735,10 +736,15 @@ theorem dvd_card_of_dvd_card [Finite G] {p : ℕ} [Fact p.Prime] (P : Sylow p G)
   rwa [pow_one] at key
 
 /-- Sylow subgroups are Hall subgroups. -/
-theorem card_coprime_index [Finite G] {p : ℕ} [hp : Fact p.Prime] (P : Sylow p G) :
-    (Nat.card P).Coprime P.index :=
+theorem isHall [Finite G] {p : ℕ} [hp : Fact p.Prime] (P : Sylow p G) :
+    (P : Subgroup G).IsHall :=
   let ⟨_n, hn⟩ := IsPGroup.iff_card.mp P.2
-  hn.symm ▸ (hp.1.coprime_pow_of_not_dvd P.not_dvd_index).symm
+  ⟨hn.symm ▸ (hp.1.coprime_pow_of_not_dvd P.not_dvd_index).symm⟩
+
+@[deprecated Sylow.isHall (since := "2026-08-13")]
+theorem card_coprime_index [Finite G] {p : ℕ} [Fact p.Prime] (P : Sylow p G) :
+    (Nat.card P).Coprime P.index :=
+  P.isHall.coprime
 
 theorem ne_bot_of_dvd_card [Finite G] {p : ℕ} [hp : Fact p.Prime] (P : Sylow p G)
     (hdvd : p ∣ Nat.card G) : (P : Subgroup G) ≠ ⊥ := by

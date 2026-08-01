@@ -5,6 +5,7 @@ Authors: Thomas Browning
 -/
 module
 
+public import Mathlib.GroupTheory.HallSubgroup.Defs
 public import Mathlib.GroupTheory.Index
 
 /-!
@@ -662,6 +663,16 @@ alias IsComplement.card_mul := IsComplement.card_mul_card
 
 @[deprecated (since := "2026-08-06")]
 alias IsComplement'.card_mul := IsComplement'.card_mul_card
+
+/-- Each factor of a complement pair of coprime orders is a Hall subgroup. -/
+theorem IsComplement'.isHall_left (h : IsComplement' H K)
+    (hcop : Nat.Coprime (Nat.card H) (Nat.card K)) : H.IsHall :=
+  ⟨by rwa [h.symm.index_eq_card]⟩
+
+/-- Each factor of a complement pair of coprime orders is a Hall subgroup. -/
+theorem IsComplement'.isHall_right (h : IsComplement' H K)
+    (hcop : Nat.Coprime (Nat.card H) (Nat.card K)) : K.IsHall :=
+  h.symm.isHall_left hcop.symm
 
 theorem isComplement'_of_disjoint_and_mul_eq_univ (h1 : Disjoint H K)
     (h2 : ↑H * ↑K = (Set.univ : Set G)) : IsComplement' H K := by
