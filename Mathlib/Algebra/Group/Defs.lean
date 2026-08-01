@@ -226,6 +226,11 @@ with commutative subobjects in a noncommutative algebraic structure. -/ ]
 lemma mul_comm' {M : Type*} [Mul M] [IsMulCommutative M] (a b : M) : a * b = b * a :=
   IsMulCommutative.is_comm.comm ..
 
+@[to_additive]
+instance (priority := 100) isMulCommutative_of_subsingleton {M : Type*} [Mul M]
+    [Subsingleton M] : IsMulCommutative M :=
+  ⟨⟨fun _ _ => Subsingleton.elim _ _⟩⟩
+
 end IsCommutative
 
 /-- A commutative additive magma is a type with an addition which commutes. -/
