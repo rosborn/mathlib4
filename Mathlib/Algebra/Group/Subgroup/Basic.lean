@@ -475,9 +475,8 @@ theorem le_normalizer_comap (f : N →* G) :
 theorem le_normalizer_map (f : G →* N) : (normalizer H).map f ≤ normalizer (H.map f) := by
   intro x hx
   obtain ⟨y, hy, rfl⟩ := Subgroup.mem_map.mp hx
-  have : .comp (MulAut.conj (f y)) f = f.comp (MulAut.conj y) := by ext; simp -- todo: extract lemma
   rw [mem_normalizer_iff_map_conj_eq] at hy ⊢
-  rw [map_map, this, ← map_map, hy]
+  rw [map_map, MulAut.conj_comp, ← map_map, hy]
 
 @[to_additive]
 theorem comap_normalizer_eq_of_le_range {f : N →* G} (h : H ≤ f.range) :
@@ -491,6 +490,13 @@ theorem comap_normalizer_eq_of_le_range {f : N →* G} (h : H ≤ f.range) :
 theorem subgroupOf_normalizer_eq {H N : Subgroup G} (h : H ≤ N) :
     (normalizer H).subgroupOf N = normalizer (H.subgroupOf N) :=
   comap_normalizer_eq_of_le_range (h.trans_eq N.range_subtype.symm)
+
+/-- The restriction of `normalizer H` to `K` normalizes `H.subgroupOf K`; this is the half of
+`Subgroup.subgroupOf_normalizer_eq` that needs no `H ≤ K` hypothesis. -/
+@[to_additive /-- The restriction of `normalizer H` to `K` normalizes `H.addSubgroupOf K`; this is
+the half of `AddSubgroup.addSubgroupOf_normalizer_eq` that needs no `H ≤ K` hypothesis. -/]
+theorem le_normalizer_subgroupOf : (normalizer H).subgroupOf K ≤ normalizer (H.subgroupOf K) :=
+  le_normalizer_comap K.subtype
 
 @[to_additive]
 theorem normal_subgroupOf_iff_le_normalizer (h : H ≤ K) :
@@ -527,6 +533,12 @@ theorem le_normalizer_of_normal [H.Normal] : K ≤ normalizer H := subset_normal
 theorem inf_normalizer_le_normalizer_inf :
     normalizer H ⊓ normalizer K ≤ normalizer ((H ⊓ K :) : Set G) :=
   fun _ h g ↦ and_congr (h.1 g) (h.2 g)
+
+/-- Every subgroup normalizes its intersection with a normal subgroup. -/
+@[to_additive /-- Every additive subgroup normalizes its intersection with a normal additive
+subgroup. -/]
+theorem le_normalizer_inf_of_normal [H.Normal] : K ≤ normalizer ((K ⊓ H : Subgroup G) : Set G) :=
+  (le_inf le_normalizer le_normalizer_of_normal).trans inf_normalizer_le_normalizer_inf
 
 @[to_additive]
 theorem iInf_normalizer_le_normalizer_iInf {ι : Sort*} (H : ι → Subgroup G) :
@@ -811,6 +823,13 @@ theorem Normal.map {H : Subgroup G} (h : H.Normal) (f : G →* N) (hf : Function
   rw [← normalizer_eq_top_iff, ← top_le_iff, ← f.range_eq_top_of_surjective hf, f.range_eq_map,
     ← H.normalizer_eq_top]
   exact le_normalizer_map _
+
+/-- The image of a normal subgroup under a group isomorphism is normal. -/
+@[to_additive /-- The image of a normal additive subgroup under an additive group isomorphism is
+normal. -/]
+instance Normal.map_equiv {H : Subgroup G} [H.Normal] (e : G ≃* N) :
+    (H.map (e : G →* N)).Normal :=
+  ‹H.Normal›.map (e : G →* N) e.surjective
 
 end Subgroup
 

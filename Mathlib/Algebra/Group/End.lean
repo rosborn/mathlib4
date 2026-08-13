@@ -742,6 +742,14 @@ theorem conj_symm_apply [Group G] (g h : G) : (conj g).symm h = g⁻¹ * h * g :
 theorem conj_inv_apply [Group G] (g h : G) : (conj g)⁻¹ h = g⁻¹ * h * g :=
   rfl
 
+/-- A group homomorphism intertwines conjugation by `g` with conjugation by `f g`. -/
+@[to_additive /-- An additive group homomorphism intertwines conjugation by `g` with
+conjugation by `f g`. -/]
+theorem conj_comp [Group G] {H : Type*} [Group H] (f : G →* H) (g : G) :
+    (conj (f g) : H →* H).comp f = f.comp (conj g : G →* G) := by
+  ext
+  simp
+
 /-- Isomorphic groups have isomorphic automorphism groups. -/
 @[to_additive (attr := simps) /-- Isomorphic groups have isomorphic automorphism groups. -/]
 def congr [Group G] {H : Type*} [Group H] (ϕ : G ≃* H) :

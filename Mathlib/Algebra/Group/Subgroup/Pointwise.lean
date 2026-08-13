@@ -504,6 +504,16 @@ theorem conj_smul_le_of_le {P H : Subgroup G} (hP : P ≤ H) (h : H) :
   rintro - ⟨g, hg, rfl⟩
   exact H.mul_mem (H.mul_mem h.2 (hP hg)) (H.inv_mem h.2)
 
+@[simp]
+theorem smul_top (a : α) : a • (⊤ : Subgroup G) = ⊤ :=
+  map_top_of_surjective _ fun g => ⟨a⁻¹ • g, smul_inv_smul a g⟩
+
+/-- For the pointwise conjugation action, `MulAut.conj g` fixes `H` iff `g` normalizes `H`. -/
+theorem conj_smul_eq_iff_mem_normalizer {H : Subgroup G} {g : G} :
+    MulAut.conj g • H = H ↔ g ∈ normalizer (H : Set G) := by
+  rw [pointwise_smul_def]
+  exact mem_normalizer_iff_map_conj_eq.symm
+
 theorem conj_smul_eq_self_of_mem {H : Subgroup G} {h : G} (hh : h ∈ H) :
     MulAut.conj h • H = H := by
   refine le_antisymm ?_ ?_
@@ -518,6 +528,21 @@ theorem conj_smul_subgroupOf {P H : Subgroup G} (hP : P ≤ H) (h : H) :
     exact ⟨g, hg, rfl⟩
   · rintro p ⟨g, hg, hp⟩
     exact ⟨⟨g, hP hg⟩, hg, Subtype.ext hp⟩
+
+/-- Two subgroups of `H` are conjugate by `h : H` inside `H` if and only if they are conjugate
+by `(h : G)` in `G`. -/
+theorem conj_smul_subgroupOf_eq_subgroupOf_iff {P Q H : Subgroup G} (hP : P ≤ H) (hQ : Q ≤ H)
+    (h : H) :
+    MulAut.conj h • P.subgroupOf H = Q.subgroupOf H ↔ MulAut.conj (h : G) • P = Q := by
+  rw [conj_smul_subgroupOf hP h, subgroupOf_inj, inf_eq_left.mpr (conj_smul_le_of_le hP h),
+    inf_eq_left.mpr hQ]
+
+/-- The image of a conjugate is the conjugate of the image: `Subgroup.map` commutes with
+pointwise conjugation. -/
+theorem map_conj_smul {N : Type*} [Group N] (f : G →* N) (g : G) (P : Subgroup G) :
+    (MulAut.conj g • P).map f = MulAut.conj (f g) • P.map f := by
+  change (P.map (MulAut.conj g : G →* G)).map f = (P.map f).map (MulAut.conj (f g) : N →* N)
+  rw [map_map, map_map, MulAut.conj_comp]
 
 @[simp]
 theorem smul_inf (a : α) (S T : Subgroup G) : a • (S ⊓ T) = a • S ⊓ a • T := by
