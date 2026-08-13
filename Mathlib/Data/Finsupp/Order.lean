@@ -80,6 +80,19 @@ lemma single_mono : Monotone (single i : α → ι →₀ α) := fun _ _ ↦ sin
 @[simp] lemma single_nonneg : 0 ≤ single i a ↔ 0 ≤ a := by classical exact Pi.single_nonneg
 @[simp] lemma single_nonpos : single i a ≤ 0 ↔ a ≤ 0 := by classical exact Pi.single_nonpos
 
+@[gcongr]
+lemma filter_le_filter (p : ι → Prop) [DecidablePred p] (h : f ≤ g) :
+    f.filter p ≤ g.filter p :=
+  le_def.mpr fun i => by
+    rw [filter_apply, filter_apply]
+    split
+    · exact le_def.mp h i
+    · exact le_rfl
+
+lemma monotone_filter_left (p : ι → Prop) [DecidablePred p] :
+    Monotone (filter p : (ι →₀ α) → ι →₀ α) :=
+  fun _f _g => filter_le_filter p
+
 variable [AddCommMonoid β] [Preorder β] [IsOrderedAddMonoid β]
 
 lemma sum_le_sum_index [DecidableEq ι] {f₁ f₂ : ι →₀ α} {h : ι → α → β} (hf : f₁ ≤ f₂)
@@ -252,6 +265,22 @@ instance decidableLT [DecidableLE α] : DecidableLT (ι →₀ α) :=
 theorem single_le_iff {i : ι} {x : α} {f : ι →₀ α} : single i x ≤ f ↔ x ≤ f i :=
   (le_iff' _ _ support_single_subset).trans <| by simp
 
+theorem filter_le_self (p : ι → Prop) [DecidablePred p] : f.filter p ≤ f :=
+  le_def.mpr fun i => by
+    rw [filter_apply]
+    split
+    · exact le_rfl
+    · exact zero_le
+
+theorem monotone_filter_right (f : ι →₀ α) ⦃p q : ι → Prop⦄ [DecidablePred p] [DecidablePred q]
+    (h : p ≤ q) : f.filter p ≤ f.filter q :=
+  le_def.mpr fun i => by
+    rw [filter_apply, filter_apply]
+    by_cases hp : p i
+    · rw [ite_eq_left hp, ite_eq_left (h i hp)]
+    · rw [ite_eq_right hp]
+      exact zero_le
+
 variable [Sub α] [OrderedSub α] {f g : ι →₀ α} {i : ι} {a b : α}
 
 /-- This is called `tsub` for truncated subtraction, to distinguish it with subtraction in an
@@ -328,6 +357,10 @@ theorem support_sup [DecidableEq ι] (f g : ι →₀ α) : (f ⊔ g).support = 
 nonrec theorem disjoint_iff {f g : ι →₀ α} : Disjoint f g ↔ Disjoint f.support g.support := by
   classical
   simp [disjoint_iff, bot_eq_zero, ← Finsupp.support_eq_empty]
+
+theorem disjoint_iff_min_apply_eq_zero {f g : ι →₀ α} :
+    Disjoint f g ↔ ∀ i, min (f i) (g i) = 0 := by
+  simp [_root_.disjoint_iff, Finsupp.ext_iff, bot_eq_zero]
 
 end LinearOrder
 
