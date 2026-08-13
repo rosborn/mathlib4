@@ -172,6 +172,27 @@ theorem quotientMulEquivOfEq_mk {M N : Subgroup G} [M.Normal] [N.Normal] (h : M 
     QuotientGroup.quotientMulEquivOfEq h (QuotientGroup.mk x) = QuotientGroup.mk x :=
   rfl
 
+/-- The image of a subgroup `K` under a homomorphism `φ` is isomorphic to the quotient of `K` by
+the part of `ker φ` lying in `K`: the first isomorphism theorem for the restriction of `φ`
+to `K`. -/
+@[to_additive /-- The image of an additive subgroup `K` under a homomorphism `φ` is isomorphic to
+the quotient of `K` by the part of `ker φ` lying in `K`: the first isomorphism theorem for the
+restriction of `φ` to `K`. -/]
+noncomputable def quotientKerSubgroupOfEquivMap (K : Subgroup G) :
+    K ⧸ (ker φ).subgroupOf K ≃* K.map φ :=
+  (quotientMulEquivOfEq (K.ker_subgroupMap φ).symm).trans
+    (quotientKerEquivOfSurjective _ (φ.subgroupMap_surjective K))
+
+/-- Pulling a subgroup `K` back along a surjective homomorphism `φ` and quotienting by the part
+of `ker φ` lying in the preimage recovers `K`. -/
+@[to_additive /-- Pulling an additive subgroup `K` back along a surjective homomorphism `φ` and
+quotienting by the part of `ker φ` lying in the preimage recovers `K`. -/]
+noncomputable def comapQuotientKerSubgroupOfEquivOfSurjective (hφ : Surjective φ)
+    (K : Subgroup H) :
+    K.comap φ ⧸ (ker φ).subgroupOf (K.comap φ) ≃* K :=
+  (quotientKerSubgroupOfEquivMap φ (K.comap φ)).trans
+    (MulEquiv.subgroupCongr (Subgroup.map_comap_eq_self_of_surjective hφ K))
+
 /-- Let `A', A, B', B` be subgroups of `G`. If `A' ≤ B'` and `A ≤ B`,
 then there is a map `A / (A' ⊓ A) →* B / (B' ⊓ B)` induced by the inclusions. -/
 @[to_additive /-- Let `A', A, B', B` be subgroups of `G`. If `A' ≤ B'` and `A ≤ B`, then there is a
@@ -307,6 +328,28 @@ noncomputable def quotientInfEquivProdNormalQuotient (H N : Subgroup G) [hN : N.
     H ⧸ N.subgroupOf H ≃* (H ⊔ N : Subgroup G) ⧸ N.subgroupOf (H ⊔ N) :=
   quotientInfEquivProdNormalizerQuotient H N le_normalizer_of_normal
 
+/-- The image of a subgroup `H` under the quotient map by a normal subgroup `N` is isomorphic to
+`H ⧸ (N.subgroupOf H)`: the first isomorphism theorem applied to the restriction of `mk' N`
+to `H`. -/
+@[to_additive /-- The image of an additive subgroup `H` under the quotient map by a normal additive
+subgroup `N` is isomorphic to `H ⧸ (N.addSubgroupOf H)`: the first isomorphism theorem applied to
+the restriction of `mk' N` to `H`. -/]
+noncomputable def quotientSubgroupOfEquivMapMk' {N H : Subgroup G} [N.Normal] :
+    H ⧸ N.subgroupOf H ≃* H.map (mk' N) :=
+  (quotientMulEquivOfEq (by rw [ker_mk'])).trans (quotientKerSubgroupOfEquivMap (mk' N) H)
+
+/-- A subgroup `K` of the quotient `G ⧸ N` is isomorphic to `P ⧸ (N.subgroupOf P)` for its
+preimage `P = K.comap (mk' N)`: the preimage-side companion of
+`quotientSubgroupOfEquivMapMk'`. -/
+@[to_additive /-- An additive subgroup `K` of the quotient `G ⧸ N` is isomorphic to
+`P ⧸ (N.addSubgroupOf P)` for its preimage `P = K.comap (mk' N)`: the preimage-side companion of
+`quotientAddSubgroupOfEquivMapMk'`. -/]
+noncomputable def quotientSubgroupOfComapMk'Equiv {N : Subgroup G} [N.Normal]
+    (K : Subgroup (G ⧸ N)) :
+    K.comap (mk' N) ⧸ N.subgroupOf (K.comap (mk' N)) ≃* K :=
+  (quotientMulEquivOfEq (by rw [ker_mk'])).trans
+    (comapQuotientKerSubgroupOfEquivOfSurjective (mk' N) (mk'_surjective N) K)
+
 end SndIsomorphismThm
 
 section ThirdIsoThm
@@ -367,6 +410,23 @@ theorem comap_map_mk' (N H : Subgroup G) [N.Normal] :
     Subgroup.comap (mk' N) (Subgroup.map (mk' N) H) = N ⊔ H := by
   simp [Subgroup.comap_map_eq, sup_comm]
 
+/-- A subgroup containing a normal subgroup `N` is the preimage of its own image under
+`mk' N`. -/
+@[to_additive /-- An additive subgroup containing a normal additive subgroup `N` is the preimage
+of its own image under `mk' N`. -/]
+theorem comap_map_mk'_of_le {N H : Subgroup G} [N.Normal] (hNH : N ≤ H) :
+    Subgroup.comap (mk' N) (Subgroup.map (mk' N) H) = H := by
+  rw [comap_map_mk', sup_eq_right.mpr hNH]
+
+/-- A subgroup of the quotient whose pullback lies in the kernel is trivial. -/
+@[to_additive /-- An additive subgroup of the quotient whose pullback lies in the kernel is
+trivial. -/]
+theorem eq_bot_of_comap_mk'_le {N : Subgroup G} [N.Normal] {K : Subgroup (G ⧸ N)}
+    (hK : K.comap (mk' N) ≤ N) : K = ⊥ := by
+  rw [← Subgroup.map_comap_eq_self_of_surjective (mk'_surjective N) K, eq_bot_iff,
+    ← map_mk'_self N]
+  exact Subgroup.map_mono hK
+
 /-- The **correspondence theorem**, or lattice theorem,
 or fourth isomorphism theorem for multiplicative groups -/
 @[to_additive /-- The **correspondence theorem**, or lattice theorem,
@@ -386,6 +446,11 @@ section trivial
 @[to_additive]
 theorem subsingleton_quotient_top : Subsingleton (G ⧸ (⊤ : Subgroup G)) := by
   simp
+
+/-- A quotient of a subsingleton group is a subsingleton. -/
+@[to_additive /-- A quotient of a subsingleton additive group is a subsingleton. -/]
+instance instSubsingletonQuotient [Subsingleton G] {N : Subgroup G} : Subsingleton (G ⧸ N) :=
+  Quotient.instSubsingletonQuotient (leftRel N)
 
 /-- If the quotient by a subgroup gives a singleton then the subgroup is the whole group. -/
 @[to_additive /-- If the quotient by an additive subgroup gives a singleton then the additive

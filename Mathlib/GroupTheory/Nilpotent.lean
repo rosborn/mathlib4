@@ -878,7 +878,7 @@ theorem nilpotencyClass_quotient_center :
   generalize hn : Group.nilpotencyClass G = n
   rcases n with (rfl | n)
   · simp only [nilpotencyClass_zero_iff_subsingleton, zero_tsub] at *
-    exact Quotient.instSubsingletonQuotient (leftRel (center G))
+    exact inferInstance
   · suffices Group.nilpotencyClass (G ⧸ center G) = n by simpa
     apply le_antisymm
     · apply upperCentralSeries_eq_top_iff_nilpotencyClass_le.mp
