@@ -526,6 +526,16 @@ theorem map_subtype_le_map_subtype {G' : Subgroup G} {H K : Subgroup G'} :
     H.map G'.subtype ≤ K.map G'.subtype ↔ H ≤ K :=
   map_le_map_iff_of_injective G'.subtype_injective
 
+@[to_additive]
+lemma disjoint_comap {f : G →* N} (hf : Function.Injective f) {H K : Subgroup N}
+    (h : Disjoint H K) : Disjoint (H.comap f) (K.comap f) := by
+  rw [disjoint_iff, ← comap_inf, disjoint_iff.mp h, comap_bot, f.ker_eq_bot hf]
+
+@[to_additive]
+lemma disjoint_subgroupOf {L H K : Subgroup G} (h : Disjoint H K) :
+    Disjoint (H.subgroupOf L) (K.subgroupOf L) :=
+  disjoint_comap L.subtype_injective h
+
 set_option backward.isDefEq.respectTransparency false in
 /-- Subgroups of the subgroup `H` are considered as subgroups that are less than or equal to
 `H`. -/
@@ -576,6 +586,11 @@ theorem map_injective_of_ker_le {H K : Subgroup G} (hH : f.ker ≤ H) (hK : f.ke
 
 @[to_additive]
 theorem ker_subgroupMap : (f.subgroupMap H).ker = f.ker.subgroupOf H :=
+  ext fun _ ↦ Subtype.ext_iff
+
+@[to_additive]
+theorem ker_subgroupComap (H' : Subgroup N) :
+    (f.subgroupComap H').ker = f.ker.subgroupOf (H'.comap f) :=
   ext fun _ ↦ Subtype.ext_iff
 
 @[to_additive]

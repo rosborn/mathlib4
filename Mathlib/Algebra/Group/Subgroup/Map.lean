@@ -293,7 +293,7 @@ def subgroupOfEquivOfLe {G : Type*} [Group G] {H K : Subgroup G} (h : H ≤ K) :
   invFun g := ⟨⟨g.1, h g.2⟩, g.2⟩
   map_mul' _g _h := rfl
 
-@[to_additive]
+@[to_additive (attr := gcongr)]
 lemma subgroupOf_mono {H₁ H₂ : Subgroup G} (H₃ : Subgroup G) (h : H₁ ≤ H₂) :
     H₁.subgroupOf H₃ ≤ H₂.subgroupOf H₃ :=
   comap_mono h
@@ -491,10 +491,15 @@ variable {N : Type*} [Group N]
 namespace MonoidHom
 
 /-- The `MonoidHom` from the preimage of a subgroup to itself. -/
-@[to_additive (attr := simps!) /-- the `AddMonoidHom` from the preimage of an
+@[to_additive /-- the `AddMonoidHom` from the preimage of an
 additive subgroup to itself. -/]
 def subgroupComap (f : G →* G') (H' : Subgroup G') : H'.comap f →* H' :=
   f.submonoidComap H'.toSubmonoid
+
+@[to_additive (attr := simp)]
+theorem subgroupComap_apply_coe (f : G →* G') (H' : Subgroup G') (x : H'.comap f) :
+    (f.subgroupComap H' x : G') = f x :=
+  rfl
 
 @[to_additive]
 lemma subgroupComap_surjective_of_surjective (f : G →* G') (H' : Subgroup G') (hf : Surjective f) :
@@ -502,9 +507,14 @@ lemma subgroupComap_surjective_of_surjective (f : G →* G') (H' : Subgroup G') 
   f.submonoidComap_surjective_of_surjective H'.toSubmonoid hf
 
 /-- The `MonoidHom` from a subgroup to its image. -/
-@[to_additive (attr := simps!) /-- the `AddMonoidHom` from an additive subgroup to its image -/]
+@[to_additive /-- the `AddMonoidHom` from an additive subgroup to its image -/]
 def subgroupMap (f : G →* G') (H : Subgroup G) : H →* H.map f :=
   f.submonoidMap H.toSubmonoid
+
+@[to_additive (attr := simp)]
+theorem subgroupMap_apply_coe (f : G →* G') (H : Subgroup G) (x : H) :
+    (f.subgroupMap H x : G') = f x :=
+  rfl
 
 @[to_additive]
 theorem subgroupMap_surjective (f : G →* G') (H : Subgroup G) :
@@ -579,10 +589,43 @@ lemma surjOn_iff_le_map {f : G →* N} {H : Subgroup G} {K : Subgroup N} :
     Set.SurjOn f H K ↔ K ≤ H.map f :=
   Iff.rfl
 
+/-- Restricting `H` to `K` and restricting `K` to `H` give isomorphic groups: both are
+`H ⊓ K`. -/
+@[to_additive /-- Restricting `H` to `K` and restricting `K` to `H` give isomorphic additive
+groups: both are `H ⊓ K`. -/]
+def subgroupOfComm (H K : Subgroup G) : H.subgroupOf K ≃* K.subgroupOf H :=
+  (MulEquiv.subgroupCongr (inf_subgroupOf_right H K).symm).trans <|
+    (subgroupOfEquivOfLe inf_le_right).trans <|
+      (subgroupOfEquivOfLe inf_le_left).symm.trans <|
+        MulEquiv.subgroupCongr (inf_subgroupOf_left K H)
+
 @[to_additive (attr := simp)]
 theorem equivMapOfInjective_coe_mulEquiv (H : Subgroup G) (e : G ≃* G') :
     H.equivMapOfInjective (e : G →* G') (EquivLike.injective e) = e.subgroupMap H := by
   ext
   rfl
+
+/-- The image of the relative subgroup `K.subgroupOf H` under the restricted map `f.subgroupMap H`
+is the restriction of the image `K.map f` to `H.map f`. -/
+@[to_additive /-- The image of the relative additive subgroup `K.addSubgroupOf H` under the
+restricted map `f.addSubgroupMap H` is the restriction of `K.map f` to `H.map f`. -/]
+theorem subgroupOf_map_subgroupMap (f : G →* N) {K H : Subgroup G} (hK : K ≤ H) :
+    (K.subgroupOf H).map (f.subgroupMap H) = (K.map f).subgroupOf (H.map f) := by
+  ext ⟨y, hy⟩
+  simp only [mem_map, mem_subgroupOf]
+  constructor
+  · rintro ⟨⟨x, hxH⟩, hxK, hxy⟩
+    exact ⟨x, hxK, by simpa using congrArg Subtype.val hxy⟩
+  · rintro ⟨x, hxK, rfl⟩
+    exact ⟨⟨x, hK hxK⟩, hxK, rfl⟩
+
+/-- The preimage of the relative subgroup `K.subgroupOf H'` under the restricted map
+`f.subgroupComap H'` is the restriction of the preimage `K.comap f` to `H'.comap f`. -/
+@[to_additive /-- The preimage of the relative additive subgroup `K.addSubgroupOf H'` under the
+restricted map `f.addSubgroupComap H'` is the restriction of `K.comap f` to `H'.comap f`. -/]
+theorem subgroupOf_comap_subgroupComap (f : G →* N) (K H' : Subgroup N) :
+    (K.subgroupOf H').comap (f.subgroupComap H') = (K.comap f).subgroupOf (H'.comap f) := by
+  ext ⟨x, hx⟩
+  simp [mem_subgroupOf]
 
 end Subgroup
