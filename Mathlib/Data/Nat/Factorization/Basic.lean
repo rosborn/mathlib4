@@ -191,6 +191,10 @@ theorem factorization_div {d n : ℕ} (h : d ∣ n) :
     Nat.factorization_mul (Nat.div_pos (Nat.le_of_dvd hn.bot_lt h) hd.bot_lt).ne' hd,
     Nat.div_mul_cancel h]
 
+theorem factorization_div_apply {d n : ℕ} (h : d ∣ n) (p : ℕ) :
+    (n / d).factorization p = n.factorization p - d.factorization p := by
+  rw [factorization_div h, Finsupp.coe_tsub, Pi.sub_apply]
+
 theorem dvd_ordProj_of_dvd {n p : ℕ} (hn : n ≠ 0) (pp : p.Prime) (h : p ∣ n) : p ∣ ordProj[p] n :=
   dvd_pow_self p (Prime.factorization_pos_of_dvd pp hn h).ne'
 
@@ -367,6 +371,10 @@ theorem factorization_gcd {a b : ℕ} (ha_pos : a ≠ 0) (hb_pos : b ≠ 0) :
     have hea' := (factorization_le_iff_dvd he_pos ha_pos).mpr hea
     have heb' := (factorization_le_iff_dvd he_pos hb_pos).mpr heb
     simp [hea', heb']
+
+theorem factorization_gcd_apply {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) (p : ℕ) :
+    (Nat.gcd a b).factorization p = min (a.factorization p) (b.factorization p) := by
+  rw [factorization_gcd ha hb, Finsupp.inf_apply]
 
 theorem coprime_iff_disjoint_factorization {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
     Coprime a b ↔ Disjoint a.factorization b.factorization := by

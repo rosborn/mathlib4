@@ -243,14 +243,14 @@ theorem factorization_factorial_eq_zero_of_lt (h : n < p) : (factorial n).factor
   induction n with
   | zero => simp
   | succ n hn =>
-    rw [factorial_succ, factorization_mul n.succ_ne_zero n.factorial_ne_zero, Finsupp.coe_add,
-      Pi.add_apply, hn (lt_of_succ_lt h), add_zero, factorization_eq_zero_of_lt h]
+    rw [factorial_succ, factorization_mul_apply n.succ_ne_zero n.factorial_ne_zero,
+      hn (lt_of_succ_lt h), add_zero, factorization_eq_zero_of_lt h]
 
 theorem factorization_choose_eq_zero_of_lt (h : n < p) : (choose n k).factorization p = 0 := by
   by_cases! hnk : n < k; · simp [choose_eq_zero_of_lt hnk]
   rw [choose_eq_factorial_div_factorial hnk,
-    factorization_div (factorial_mul_factorial_dvd_factorial hnk), Finsupp.coe_tsub,
-    Pi.sub_apply, factorization_factorial_eq_zero_of_lt h, zero_tsub]
+    factorization_div_apply (factorial_mul_factorial_dvd_factorial hnk),
+    factorization_factorial_eq_zero_of_lt h, zero_tsub]
 
 /-- If a prime `p` has positive multiplicity in the `n`th central binomial coefficient,
 `p` is no more than `2 * n` -/

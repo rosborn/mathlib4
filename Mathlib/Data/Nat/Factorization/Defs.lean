@@ -158,6 +158,10 @@ theorem factorization_mul {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
   simp only [add_apply, ← primeFactorsList_count_eq,
     perm_iff_count.mp (perm_primeFactorsList_mul ha hb) p, count_append]
 
+theorem factorization_mul_apply {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) (p : ℕ) :
+    (a * b).factorization p = a.factorization p + b.factorization p := by
+  rw [factorization_mul ha hb, Finsupp.add_apply]
+
 theorem factorization_le_iff_dvd {d n : ℕ} (hd : d ≠ 0) (hn : n ≠ 0) :
     d.factorization ≤ n.factorization ↔ d ∣ n := by
   refine ⟨fun hdn ↦ ?_, fun ⟨c, h⟩ ↦ ?_⟩
@@ -189,6 +193,10 @@ theorem factorization_pow (n k : ℕ) : factorization (n ^ k) = k • n.factoriz
     · simp
     rw [Nat.pow_succ, mul_comm, factorization_mul hn (pow_ne_zero _ hn), ih,
       add_smul, one_smul, add_comm]
+
+theorem factorization_pow_apply (n k p : ℕ) :
+    (n ^ k).factorization p = k * n.factorization p := by
+  rw [factorization_pow, Finsupp.smul_apply, smul_eq_mul]
 
 /-! ## Lemmas about factorizations of primes and prime powers -/
 
