@@ -368,6 +368,11 @@ theorem factorization_gcd {a b : ℕ} (ha_pos : a ≠ 0) (hb_pos : b ≠ 0) :
     have heb' := (factorization_le_iff_dvd he_pos hb_pos).mpr heb
     simp [hea', heb']
 
+theorem coprime_iff_disjoint_factorization {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
+    Coprime a b ↔ Disjoint a.factorization b.factorization := by
+  rw [Finsupp.disjoint_iff, support_factorization, support_factorization,
+    Nat.disjoint_primeFactors ha hb]
+
 theorem factorization_lcm {a b : ℕ} (ha : a ≠ 0) (hb : b ≠ 0) :
     (a.lcm b).factorization = a.factorization ⊔ b.factorization := by
   rw [← add_right_inj (a.gcd b).factorization, ←

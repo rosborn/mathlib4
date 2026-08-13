@@ -54,6 +54,7 @@ lemma Prime.mem_primeFactors' (hp : p.Prime) (hdvd : p ∣ n) [NeZero n] : p ∈
 lemma Prime.mem_primeFactors_self (hp : p.Prime) : p ∈ p.primeFactors :=
   hp.mem_primeFactors p.dvd_refl hp.ne_zero
 
+@[gcongr]
 lemma primeFactors_mono (hmn : m ∣ n) (hn : n ≠ 0) : primeFactors m ⊆ primeFactors n := by
   simp only [subset_iff, mem_primeFactors, and_imp]
   exact fun p hp hpm _ ↦ ⟨hp, hpm.trans hmn, hn⟩
@@ -115,6 +116,10 @@ lemma primeFactors_gcd (ha : a ≠ 0) (hb : b ≠ 0) :
 protected lemma Coprime.disjoint_primeFactors (hab : Coprime a b) :
     Disjoint a.primeFactors b.primeFactors :=
   List.disjoint_toFinset_iff_disjoint.2 <| coprime_primeFactorsList_disjoint hab
+
+theorem Coprime.primeFactors_sdiff {d e : ℕ} (hcop : Coprime d e) :
+    e.primeFactors = (d * e).primeFactors \ d.primeFactors := by
+  rw [hcop.primeFactors_mul, Finset.union_sdiff_cancel_left hcop.disjoint_primeFactors]
 
 lemma primeFactors_pow_succ (n k : ℕ) : (n ^ (k + 1)).primeFactors = n.primeFactors := by
   rcases eq_or_ne n 0 with (rfl | hn)

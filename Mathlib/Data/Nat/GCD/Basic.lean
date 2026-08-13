@@ -165,12 +165,15 @@ lemma coprime_add_iff_right (h : a ∣ b) : Coprime a (b + c) ↔ Coprime a c :=
   obtain ⟨n, rfl⟩ := h; simp
 
 -- TODO: Replace `Nat.Coprime.coprime_dvd_left`
+@[gcongr]
 lemma Coprime.of_dvd_left (ha : a₁ ∣ a₂) (h : Coprime a₂ b) : Coprime a₁ b := h.coprime_dvd_left ha
 
 -- TODO: Replace `Nat.Coprime.coprime_dvd_right`
+@[gcongr]
 lemma Coprime.of_dvd_right (hb : b₁ ∣ b₂) (h : Coprime a b₂) : Coprime a b₁ :=
   h.coprime_dvd_right hb
 
+@[gcongr]
 lemma Coprime.of_dvd (ha : a₁ ∣ a₂) (hb : b₁ ∣ b₂) (h : Coprime a₂ b₂) : Coprime a₁ b₁ :=
   (h.of_dvd_left ha).of_dvd_right hb
 
