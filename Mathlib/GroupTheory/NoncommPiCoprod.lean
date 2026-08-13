@@ -353,6 +353,47 @@ theorem noncommPiCoprod_apply (comm) (u : (i : ι) → H i) :
   simp only [Subgroup.noncommPiCoprod, MonoidHom.noncommPiCoprod,
     coe_subtype, MonoidHom.coe_mk, OneHom.coe_mk]
 
+/-- For a pairwise-commuting, lattice-independent family of subgroups, `noncommPiCoprod` gives a
+multiplicative equivalence `(∀ i, H i) ≃* ⨆ i, H i` (an internal direct product). -/
+@[to_additive /-- For a pairwise-commuting, lattice-independent family of additive subgroups,
+`noncommPiCoprod` gives an additive equivalence `(∀ i, H i) ≃+ ⨆ i, H i` (an internal direct
+product). -/]
+noncomputable def noncommPiCoprodMulEquiv
+    (hcomm : Pairwise fun i j : ι => ∀ x y : G, x ∈ H i → y ∈ H j → Commute x y)
+    (hind : iSupIndep H) : (∀ i, H i) ≃* (⨆ i, H i : Subgroup G) :=
+  (MonoidHom.ofInjective (injective_noncommPiCoprod_of_iSupIndep (hcomm := hcomm) hind)).trans
+    (MulEquiv.subgroupCongr noncommPiCoprod_range)
+
+@[to_additive (attr := simp)]
+theorem noncommPiCoprodMulEquiv_apply
+    {hcomm : Pairwise fun i j : ι => ∀ x y : G, x ∈ H i → y ∈ H j → Commute x y}
+    {hind : iSupIndep H} (u : ∀ i, H i) :
+    (noncommPiCoprodMulEquiv hcomm hind u : G) = noncommPiCoprod hcomm u :=
+  rfl
+
+/-- For a pairwise-commuting, lattice-independent family of subgroups, the order of the join is the
+product of the orders: `Nat.card (⨆ i, H i) = ∏ i, Nat.card (H i)`. -/
+@[to_additive /-- For a pairwise-commuting, lattice-independent family of additive subgroups, the
+order of the join is the product of the orders: `Nat.card (⨆ i, H i) = ∏ i, Nat.card (H i)`. -/]
+theorem card_iSup_of_iSupIndep
+    (hcomm : Pairwise fun i j : ι => ∀ x y : G, x ∈ H i → y ∈ H j → Commute x y)
+    (hind : iSupIndep H) :
+    Nat.card (⨆ i, H i : Subgroup G) = ∏ i, Nat.card (H i) :=
+  (Nat.card_congr (noncommPiCoprodMulEquiv hcomm hind).symm.toEquiv).trans Nat.card_pi
+
+omit [Fintype ι] in
+/-- Finset-indexed form of `card_iSup_of_iSupIndep`: the order of `⨆ i ∈ S, H i` is the product of
+the orders over `S`. Commutativity and independence are only required over `S`. -/
+@[to_additive /-- Finset-indexed form of `card_iSup_of_iSupIndep`: the order of `⨆ i ∈ S, H i` is
+the product of the orders over `S`. Commutativity and independence are only required over `S`. -/]
+theorem card_biSup_of_iSupIndep {S : Finset ι}
+    (hcomm : Pairwise fun i j : S => ∀ x y : G, x ∈ H i → y ∈ H j → Commute x y)
+    (hind : iSupIndep fun i : S => H i) :
+    Nat.card ((⨆ i ∈ S, H i) : Subgroup G) = ∏ i ∈ S, Nat.card (H i) := by
+  rw [iSup_subtype', card_iSup_of_iSupIndep hcomm hind,
+    ← Finset.prod_attach S (fun i => Nat.card (H i))]
+  rfl
+
 end CommutingSubgroups
 
 end Subgroup
